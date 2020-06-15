@@ -47,11 +47,11 @@ public class Alarm {
         target.set(Calendar.SECOND, 0);
 
         long timeInterval = target.getTimeInMillis() - cur.getTimeInMillis();
+        // long timeInterval = 0;
         PersistableBundle bundle = new PersistableBundle();
         bundle.putBoolean("is24", true);
 
         JobInfo job = new JobInfo.Builder(setDailyCheckId, new ComponentName(context, AlarmReceiver.class))
-                .setPeriodic(TimeUnit.DAYS.toMillis(1))
                 .setMinimumLatency(timeInterval)
                 .setOverrideDeadline(timeInterval + TimeUnit.SECONDS.toMillis(1))
                 .setPersisted(true)

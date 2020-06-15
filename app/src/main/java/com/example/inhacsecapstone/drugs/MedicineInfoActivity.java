@@ -5,9 +5,11 @@ import android.app.TimePickerDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Bundle;
+import android.text.method.ScrollingMovementMethod;
 import android.view.View;
 import android.widget.Button;
 import android.widget.ImageView;
+import android.widget.ScrollView;
 import android.widget.TextView;
 import android.widget.TimePicker;
 import android.widget.Toast;
@@ -37,9 +39,12 @@ public class MedicineInfoActivity extends AppCompatActivity {
         TextView text1 = findViewById(R.id.effect);
         TextView text2 = findViewById(R.id.usage);
         Button deleteButton = findViewById(R.id.deleteButton);
+        ScrollView effect_scroll = findViewById(R.id.effect_usage);
+        ScrollView usage_scroll = findViewById(R.id.usage_scroll);
+        ScrollView delete_scroll = findViewById(R.id.delete_scroll);
+
         ImageView img = findViewById(R.id.image);
         ChipGroup chipGroup = findViewById(R.id.will_takes);
-
         appDatabase = AppDatabase.getDataBase(this);
         alarm = new Alarm(this);
         context = this;
@@ -49,12 +54,23 @@ public class MedicineInfoActivity extends AppCompatActivity {
             t.removeTabAt(2);
             chipGroup.setVisibility(View.GONE);
         }
+        if(medi.getImage() != null)
+            Glide.with(this).load(medi.getImage()).into(img);
+        else
+            img.setImageDrawable(getResources().getDrawable(R.drawable.default_img, getApplicationContext().getTheme()));
 
-        Glide.with(this).load(medi.getImage()).into(img);
-        text1.setText(medi.getEffect());
-        text2.setText(medi.getUsage());
-        text2.setVisibility(View.INVISIBLE);
-        deleteButton.setVisibility(View.INVISIBLE);
+        if(medi.getEffect() != null)
+            text1.setText(medi.getEffect());
+        else
+            text1.setText("용법 용량 정보가 없습니다.");
+        if(medi.getEffect() != null)
+            text2.setText(medi.getUsage());
+        else
+            text2.setText("효능 효과 정보가 없습니다.");
+
+
+        usage_scroll.setVisibility(View.INVISIBLE);
+        delete_scroll.setVisibility(View.INVISIBLE);
 
         deleteButton.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -78,6 +94,7 @@ public class MedicineInfoActivity extends AppCompatActivity {
         // addChip 넣기
         Chip addChip = new Chip(context);
         addChip.setTextSize(25);
+        addChip.setChipBackgroundColorResource(R.color.colorAccent);
         addChip.setText("+");
 
         TimePickerDialog.OnTimeSetListener listener = new TimePickerDialog.OnTimeSetListener() {
@@ -126,7 +143,15 @@ public class MedicineInfoActivity extends AppCompatActivity {
         Chip chip = new Chip(this);
         chip.setTextSize(20);
         chip.setCloseIconSize(60);
-        chip.setText(time);
+        chip.setChipBackgroundColorResource(R.color.colorAccent);
+        int hourOfDay = Integer.parseInt(time.split(":")[0]);
+        int minute = Integer.parseInt(time.split(":")[1]);
+
+        String hour = hourOfDay <10? "0" + Integer.toString(hourOfDay):Integer.toString(hourOfDay);
+        String min = minute<10 ? "0" + Integer.toString(minute) : Integer.toString(minute);
+
+        String times = hour + ":" + min;
+        chip.setText(times);
         chip.setCloseIconVisible(true);
 
         chip.setOnCloseIconClickListener(new Chip.OnClickListener(){
@@ -147,12 +172,18 @@ public class MedicineInfoActivity extends AppCompatActivity {
                 TextView textView = (TextView) v;
                 String pre = (String)textView.getText();
                 String hour_min[] = pre.split(":");
+                hour_min[0] = Integer.toString(Integer.parseInt(hour_min[0]));
+                hour_min[1] = Integer.toString(Integer.parseInt(hour_min[1]));
+                String pres = hour_min[0] + ":" + hour_min[1];
                 TimePickerDialog dialog = new TimePickerDialog(context,android.R.style.Theme_Holo_Light_Dialog, new TimePickerDialog.OnTimeSetListener() {
                     @Override
                     public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                         String time = Integer.toString(hourOfDay) + ":" + Integer.toString(minute);
-                        appDatabase.updateWillTake(code, time, pre);
-                        appDatabase.updateTempTake(code, time, pre);
+                        appDatabase.updateWillTake(code, time, pres);
+                        appDatabase.updateTempTake(code, time, pres);
+                        String hour = hourOfDay <10? "0" + Integer.toString(hourOfDay):Integer.toString(hourOfDay);
+                        String min = minute<10 ? "0" + Integer.toString(minute) : Integer.toString(minute);
+                        time = hour + ":" + min;
                         chip.setText(time);
                         alarm.setAlarm();
                     }
@@ -164,25 +195,25 @@ public class MedicineInfoActivity extends AppCompatActivity {
         chipGroup.addView(chip);
     }
     private void changeView(int index) {
-        TextView textView1 = findViewById(R.id.effect);
-        TextView textView2 = findViewById(R.id.usage);
-        Button deleteButton = findViewById(R.id.deleteButton);
+        ScrollView effect_scroll = findViewById(R.id.effect_usage);
+        ScrollView usage_scroll = findViewById(R.id.usage_scroll);
+        ScrollView delete_scroll = findViewById(R.id.delete_scroll);
 
         switch (index) {
             case 0:
-                textView1.setVisibility(View.VISIBLE);
-                textView2.setVisibility(View.INVISIBLE);
-                deleteButton.setVisibility(View.INVISIBLE);
+                effect_scroll.setVisibility(View.VISIBLE);
+                usage_scroll.setVisibility(View.INVISIBLE);
+                delete_scroll.setVisibility(View.INVISIBLE);
                 break;
             case 1:
-                textView1.setVisibility(View.INVISIBLE);
-                textView2.setVisibility(View.VISIBLE);
-                deleteButton.setVisibility(View.INVISIBLE);
+                effect_scroll.setVisibility(View.INVISIBLE);
+                usage_scroll.setVisibility(View.VISIBLE);
+                delete_scroll.setVisibility(View.INVISIBLE);
                 break;
             case 2:
-                textView1.setVisibility(View.INVISIBLE);
-                textView2.setVisibility(View.INVISIBLE);
-                deleteButton.setVisibility(View.VISIBLE);
+                effect_scroll.setVisibility(View.INVISIBLE);
+                usage_scroll.setVisibility(View.INVISIBLE);
+                delete_scroll.setVisibility(View.VISIBLE);
                 break;
         }
     }

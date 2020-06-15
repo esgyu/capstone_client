@@ -55,7 +55,6 @@ import okhttp3.Response;
 
 
 public class PicturePreviewActivity extends AppCompatActivity implements View.OnClickListener {
-
     private static PictureResult picture;
     Bitmap mbitmap;
     private HttpConnection httpConn = HttpConnection.getInstance();
@@ -73,6 +72,7 @@ public class PicturePreviewActivity extends AppCompatActivity implements View.On
 
         setContentView(R.layout.activity_picture_preview);
 
+        Toast.makeText(this, "사진을 확인하세요", Toast.LENGTH_LONG).show();
         final Uri uri = getIntent().getParcelableExtra("imageUri");
         final PictureResult result = picture;
         final ImageView imageView = findViewById(R.id.image);
@@ -88,7 +88,7 @@ public class PicturePreviewActivity extends AppCompatActivity implements View.On
             }
         } else if (result != null && uri == null) {
             try {
-                result.toBitmap(1000, 1000, new BitmapCallback() {
+                result.toBitmap(5000, 5000, new BitmapCallback() {
                     @Override
                     public void onBitmapReady(Bitmap bitmap) {
                         imageView.setImageBitmap(bitmap);
@@ -140,6 +140,7 @@ public class PicturePreviewActivity extends AppCompatActivity implements View.On
             CameraActivity camera = (CameraActivity) CameraActivity.camera_activity;
             camera.finish();
             sendImageToServer(mbitmap);
+            setResult(Activity.RESULT_OK);
             finish();
         } else if (id == R.id.cancel_button) {
             // 결과코드를 'RESULT_CANCELED'로 세팅.

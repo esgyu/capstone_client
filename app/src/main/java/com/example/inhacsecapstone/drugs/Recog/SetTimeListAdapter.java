@@ -47,7 +47,10 @@ public class SetTimeListAdapter extends RecyclerView.Adapter<SetTimeListAdapter.
         if (mdrugs != null) {
             Medicine curDrug = mdrugs.get(position);
             holder.medi = curDrug;
-            Glide.with(context).load(curDrug.getImage()).into(holder.imageView);
+            if(curDrug.getImage() != null)
+                Glide.with(context).load(curDrug.getImage()).into(holder.imageView);
+            else
+                holder.imageView.setImageDrawable(context.getResources().getDrawable(R.drawable.default_img, context.getTheme()));
             holder.will_takes = times.get(curDrug.getCode());
             holder.imageView.setOnClickListener(new View.OnClickListener() {
                 @Override
@@ -75,6 +78,7 @@ public class SetTimeListAdapter extends RecyclerView.Adapter<SetTimeListAdapter.
                 createChip(holder.will_takes, i, holder.chipGroup, time);
             }
             Chip addChip = new Chip(context);
+            addChip.setChipBackgroundColorResource(R.color.colorAccent);
             addChip.setTextSize(25);
             addChip.setText("+");
 
@@ -112,9 +116,16 @@ public class SetTimeListAdapter extends RecyclerView.Adapter<SetTimeListAdapter.
 
     public void createChip(ArrayList<String> will_takes, int index, ChipGroup chipGroup, String str){
         Chip chip = new Chip(context);
+        chip.setChipBackgroundColorResource(R.color.colorAccent);
         chip.setTextSize(20);
         chip.setCloseIconSize(60);
-        chip.setText(str);
+
+        int hourOfDay = Integer.parseInt(str.split(":")[0]);
+        int minute = Integer.parseInt(str.split(":")[1]);
+
+        String hour = hourOfDay <10? "0" + Integer.toString(hourOfDay):Integer.toString(hourOfDay);
+        String min = minute<10 ? "0" + Integer.toString(minute) : Integer.toString(minute);
+        chip.setText(hour + ":" + min);
         chip.setCloseIconVisible(true);
         chip.setOnCloseIconClickListener(new Chip.OnClickListener(){
             @Override
@@ -128,7 +139,11 @@ public class SetTimeListAdapter extends RecyclerView.Adapter<SetTimeListAdapter.
             public void onTimeSet(TimePicker view, int hourOfDay, int minute) {
                 String time = Integer.toString(hourOfDay) + ":" + Integer.toString(minute);
                 will_takes.set(index, time);
-                chip.setText(time);
+
+                String hour = hourOfDay <10? "0" + Integer.toString(hourOfDay):Integer.toString(hourOfDay);
+                String min = minute<10 ? "0" + Integer.toString(minute) : Integer.toString(minute);
+
+                chip.setText(hour + ":" + min);
             }
         };
 

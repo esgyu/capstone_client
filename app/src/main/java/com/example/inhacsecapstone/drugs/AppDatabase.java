@@ -7,6 +7,7 @@ import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
 import android.os.strictmode.SqliteObjectLeakedViolation;
 import android.util.Log;
+import android.util.Pair;
 
 import androidx.core.content.ContextCompat;
 
@@ -16,6 +17,8 @@ import com.example.inhacsecapstone.cameras.CameraActivity;
 
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.List;
 
@@ -57,16 +60,16 @@ public class AppDatabase extends SQLiteOpenHelper {
                 "code INTEGER, " +
                 "day TEXT, " +
                 "time TEXT," +
+                "memo TEXT," +
                 "PRIMARY KEY (code, day, time))");
         db.execSQL("CREATE TABLE will_take (" +
                 "code INTEGER, " +
                 "time TEXT)");
         db.execSQL("CREATE TABLE temp_time (" +
                 "code INTEGER," +
-                "day TEXT,"+
                 "time TEXT)");
     }
-
+/*
     public void init() {
         SQLiteDatabase db = getReadableDatabase();
         db.execSQL("DELETE FROM medicine_list");
@@ -90,7 +93,8 @@ public class AppDatabase extends SQLiteOpenHelper {
         insertWillTake(11111111, "19:10");
         insertTempTake(11111111, "14:32");
         insertTempTake(11111111, "19:10");
-    }
+    }*/
+
 
     // DB 업그레이드를 위해 버전이 변경될 때 호출되는 함수
     @Override
@@ -100,17 +104,17 @@ public class AppDatabase extends SQLiteOpenHelper {
     // Medicine 관련 함수들
     public void insert(Medicine medicine) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO medicine_list VALUES(" + medicine.getCode() + ", '" +
-                    medicine.getName() + "','" +
-                    medicine.getImage() + "','" +
-                    medicine.getEffect() + "','" +
-                    medicine.getUsage() + "'," +
-                    medicine.getCategory() + ",'" +
-                    medicine.getSingleDose() + "'," +
+        db.execSQL("INSERT INTO medicine_list VALUES(" + medicine.getCode() + ", " +
+                    isNull(medicine.getName()) + "," +
+                    isNull(medicine.getImage()) + "," +
+                    isNull(medicine.getEffect()) + "," +
+                    isNull(medicine.getUsage()) + "," +
+                    medicine.getCategory() + "," +
+                    medicine.getSingleDose() + "," +
                     medicine.getDailyDose() + "," +
                     medicine.getNumberOfDayTakens() + "," +
-                    medicine.getWarning() + ",'" +
-                    medicine.getStartDay() + "')");
+                    medicine.getWarning() + "," +
+                    isNull(medicine.getStartDay()) + ")");
         db.close();
     }
     public void deleteAllForCode(int code){
@@ -151,7 +155,7 @@ public class AppDatabase extends SQLiteOpenHelper {
         ArrayList<Medicine> result = new ArrayList<Medicine>();
 
         try {
-            Cursor cursor = db.rawQuery("SELECT * FROM medicine_list INNER JOIN taked ON medicine_list.code = taked.code WHERE day = '" + day + "'", null);
+            Cursor cursor = db.rawQuery("SELECT * FROM medicine_list INNER JOIN taked ON medicine_list.code = taked.code WHERE day = " + isNull(day) , null);
             while (cursor.moveToNext()) {
                 Medicine current = new Medicine(cursor.getInt(cursor.getColumnIndex("code")),
                         cursor.getString(cursor.getColumnIndex("name")),
@@ -173,16 +177,16 @@ public class AppDatabase extends SQLiteOpenHelper {
     }
     public void update(Medicine medi){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("UPDATE medicine_list SET name = '"+ medi.getName() + "'," +
-                "image = '"+ medi.getImage()+ "',"+
-                "effect = '"+ medi.getEffect()+ "',"+
-                "usage = '"+ medi.getUsage()+ "',"+
-                "category = '"+ medi.getCategory()+ "',"+
-                "single_dose = '"+ medi.getSingleDose()+ "',"+
-                "daily_dose = '"+ medi.getDailyDose()+ "',"+
-                "number_of_day_takens = '"+ medi.getNumberOfDayTakens()+ "',"+
-                "warning = '"+ medi.getWarning()+ "',"+
-                "start_day = '"+ medi.getStartDay()+ "'"+
+        db.execSQL("UPDATE medicine_list SET name = "+ isNull(medi.getName()) + "," +
+                "image = "+ isNull(medi.getImage())+ ","+
+                "effect = "+ isNull(medi.getEffect())+ ","+
+                "usage = "+ isNull(medi.getUsage())+ ","+
+                "category = "+ medi.getCategory()+ ","+
+                "single_dose = "+ medi.getSingleDose()+ ","+
+                "daily_dose = "+ medi.getDailyDose()+ ","+
+                "number_of_day_takens = "+ medi.getNumberOfDayTakens()+ ","+
+                "warning = "+ medi.getWarning()+ ","+
+                "start_day = "+ isNull(medi.getStartDay())+ ""+
                 "WHERE code = " + medi.getCode());
 
         db.close();
@@ -214,13 +218,14 @@ public class AppDatabase extends SQLiteOpenHelper {
     // take 관련 함수들
     public void insert(Takes take) {
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO taked VALUES(" + take.getCode() + ",'" + take.getDay() + "','" + take.getTime() + "')");
+
+        db.execSQL("INSERT INTO taked VALUES(" + take.getCode() + "," + isNull(take.getDay()) + "," + isNull(take.getTime()) + ", "+ isNull(take.getMemo()) + ")");
         db.close();
     }
     public void update(Takes take, String prevTime){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("UPDATE taked SET day ='" + take.getDay() + "', time = '"+ take.getTime() + "' WHERE code = " + take.getCode() +
-                " AND day='" + take.getDay() + "'AND time='" + prevTime+ "'");
+        db.execSQL("UPDATE taked SET day =" + isNull(take.getDay()) + ", time = "+ isNull(take.getTime()) + ", memo = "+ isNull(take.getMemo()) +" WHERE code = " + take.getCode() +
+                " AND day=" + isNull(take.getDay()) + "AND time=" + isNull(prevTime));
     }
     public ArrayList<Takes> getAllTakes() {
         SQLiteDatabase db = getReadableDatabase();
@@ -230,7 +235,8 @@ public class AppDatabase extends SQLiteOpenHelper {
             while (cursor.moveToNext()) {
                 Takes current = new Takes(cursor.getInt(cursor.getColumnIndex("code")),
                         cursor.getString(cursor.getColumnIndex("day")),
-                        cursor.getString(cursor.getColumnIndex("time")));
+                        cursor.getString(cursor.getColumnIndex("time")),
+                        cursor.getString(cursor.getColumnIndex("memo")));
                 result.add(current);
             }
         } catch (Exception ex) {
@@ -238,21 +244,69 @@ public class AppDatabase extends SQLiteOpenHelper {
         }
         return result;
     }
+
+    public String isNull(String str){
+        if(str == null)
+            return "null";
+        else
+            return "'" + str + "'";
+    }
+    class TakeSort implements Comparator<Takes> {
+        public int compare(Takes a, Takes b)
+        {
+
+            String str_a[] = a.getTime().split(":");
+            String str_b[] = b.getTime().split(":");
+            int hour_a = Integer.parseInt(str_a[0]);
+            int min_a = Integer.parseInt(str_a[1]);
+
+            int hour_b = Integer.parseInt(str_b[0]);
+            int min_b = Integer.parseInt(str_b[1]);
+
+            if(hour_a == hour_b)
+                return min_a - min_b;
+
+            return hour_a - hour_b;
+
+        }
+    }
+    class TimeSort implements Comparator<String> {
+        public int compare(String a, String b)
+        {
+
+            String str_a[] = a.split(":");
+            String str_b[] = b.split(":");
+            int hour_a = Integer.parseInt(str_a[0]);
+            int min_a = Integer.parseInt(str_a[1]);
+
+            int hour_b = Integer.parseInt(str_b[0]);
+            int min_b = Integer.parseInt(str_b[1]);
+
+            if(hour_a == hour_b)
+                return min_a - min_b;
+
+            return hour_a - hour_b;
+        }
+    }
+
     public ArrayList<Takes> gettakesAtDay(String day) {
         SQLiteDatabase db = getReadableDatabase();
         ArrayList<Takes> result = new ArrayList<Takes>();
 
         try {
-            Cursor cursor = db.rawQuery("SELECT * FROM taked WHERE day = '" + day + "'", null);
+            Cursor cursor = db.rawQuery("SELECT * FROM taked WHERE day = " + isNull(day), null);
             while (cursor.moveToNext()) {
                 Takes current = new Takes(cursor.getInt(cursor.getColumnIndex("code")),
                         cursor.getString(cursor.getColumnIndex("day")),
-                        cursor.getString(cursor.getColumnIndex("time")));
+                        cursor.getString(cursor.getColumnIndex("time")),
+                        cursor.getString(cursor.getColumnIndex("memo")));
                 result.add(current);
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+
+        Collections.sort(result,new TakeSort());
         return result;
     }
 
@@ -262,28 +316,29 @@ public class AppDatabase extends SQLiteOpenHelper {
         SQLiteDatabase db = getReadableDatabase();
         ArrayList<String> result = new ArrayList<String>();
         try {
-            Cursor cursor = db.rawQuery("SELECT * FROM will_take WHERE code=" + code + " ORDER BY time ASC", null);
+            Cursor cursor = db.rawQuery("SELECT * FROM will_take WHERE code=" + code, null);
             while (cursor.moveToNext()) {
                 result.add(cursor.getString(cursor.getColumnIndex("time")));
             }
         } catch (Exception ex) {
             ex.printStackTrace();
         }
+        Collections.sort(result,new TimeSort());
         return result;
     }
     public void insertWillTake(int code, String time){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("INSERT INTO will_take VALUES("+ code + ", '" + time  +"')");
+        db.execSQL("INSERT INTO will_take VALUES("+ code + ", " + isNull(time)  +")");
         db.close();
     }
     public void updateWillTake(int code, String time, String pre){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("UPDATE will_take SET time = '" + time + "' WHERE code = " + code + " AND time = '" + pre +"'");
+        db.execSQL("UPDATE will_take SET time = " + isNull(time) + " WHERE code = " + code + " AND time = " + isNull(pre) );
         db.close();
     }
     public void deleteWillTake(int code, String time){
         SQLiteDatabase db = getWritableDatabase();
-        db.execSQL("DELETE FROM will_take WHERE code = " + code + " AND time = '" + time + "'");
+        db.execSQL("DELETE FROM will_take WHERE code = " + code + " AND time = " + isNull(time) );
         db.close();
     }
 
@@ -293,7 +348,7 @@ public class AppDatabase extends SQLiteOpenHelper {
         Calendar calendar = Calendar.getInstance();
 
         String day = Integer.toString(calendar.get(Calendar.YEAR)) + "." + Integer.toString(calendar.get(Calendar.MONTH) + 1) + "." + Integer.toString(calendar.get(Calendar.DATE));
-        db.execSQL("INSERT INTO temp_time VALUES("+ code + ", '" + day + "', '" + time  +"')");
+        db.execSQL("INSERT INTO temp_time VALUES("+ code + ", " + isNull(time)  +")");
         db.close();
     }
     public void updateTempTake(int code, String time, String pre){
@@ -301,7 +356,8 @@ public class AppDatabase extends SQLiteOpenHelper {
         Calendar calendar = Calendar.getInstance();
 
         String day = Integer.toString(calendar.get(Calendar.YEAR)) + "." + Integer.toString(calendar.get(Calendar.MONTH) + 1) + "." + Integer.toString(calendar.get(Calendar.DATE));
-        db.execSQL("UPDATE temp_time SET time = '"+ time + "' WHERE code = " + code + " AND time = '" + pre + "' AND day = '" + day + "'");
+        // db.execSQL("UPDATE temp_time SET time = "+ isNull(time) + " WHERE code = " + code + " AND time = " + isNull(pre) + " AND day = " + isNull(day));
+        db.execSQL("UPDATE temp_time SET time = "+ isNull(time) + " WHERE code = " + code + " AND time = " + isNull(pre));
         db.close();
     }
 
@@ -310,7 +366,7 @@ public class AppDatabase extends SQLiteOpenHelper {
         Calendar calendar = Calendar.getInstance();
 
         String day = Integer.toString(calendar.get(Calendar.YEAR)) + "." + Integer.toString(calendar.get(Calendar.MONTH) + 1) + "." + Integer.toString(calendar.get(Calendar.DATE));
-        db.execSQL("DELETE FROM temp_time WHERE code = " + code + " AND time = '" + time + "' AND day = '" + day + "'");
+        db.execSQL("DELETE FROM temp_time WHERE code = " + code + " AND time = " + isNull(time));
         db.close();
     }
 
@@ -340,7 +396,7 @@ public class AppDatabase extends SQLiteOpenHelper {
                 calendar.add(Calendar.DATE, number_of_takens);
                 int result = calendar.compareTo(current);
                 if(result > 0)
-                    dbwrite.execSQL("INSERT INTO temp_time VALUES(" + code + ", '"+ str + "', '" + time +"')");
+                    dbwrite.execSQL("INSERT INTO temp_time VALUES(" + code + ", " + isNull(time) +")");
             }
         }catch(Exception ex){
             ex.printStackTrace();
@@ -354,14 +410,24 @@ public class AppDatabase extends SQLiteOpenHelper {
 
         Calendar calendar = Calendar.getInstance();
         int check = -1;
+        ArrayList<Pair<String, Integer>> pairs = new ArrayList<>();
 
         int criterion = calendar.get(Calendar.HOUR_OF_DAY )*100 + calendar.get(Calendar.MINUTE);
         try {
-            Cursor cursor = db.rawQuery("SELECT * FROM medicine_list A INNER JOIN temp_time B ON A.code = B.code ORDER BY time ASC", null);
+            Cursor cursor = db.rawQuery("SELECT * FROM temp_time B", null);
             while(cursor.moveToNext())
             {
                 int code = cursor.getInt(cursor.getColumnIndex("code"));
                 String time = cursor.getString(cursor.getColumnIndex("time"));
+                pairs.add(new Pair<String, Integer>(time, code));
+            }
+
+
+            Collections.sort(pairs, new pairSort());
+            for(Pair<String, Integer> iter : pairs){
+                String time = iter.first;
+                int code = iter.second;
+
                 String hour_min[] = time.split(":");
                 int prior = Integer.parseInt(hour_min[0])*100 + Integer.parseInt(hour_min[1]);
 
@@ -386,5 +452,22 @@ public class AppDatabase extends SQLiteOpenHelper {
         }
 
         return result;
+    }
+    class pairSort implements Comparator<Pair<String, Integer>> {
+        public int compare(Pair<String, Integer> a, Pair<String, Integer> b)
+        {
+            String str_a[] = a.first.split(":");
+            String str_b[] = b.first.split(":");
+            int hour_a = Integer.parseInt(str_a[0]);
+            int min_a = Integer.parseInt(str_a[1]);
+
+            int hour_b = Integer.parseInt(str_b[0]);
+            int min_b = Integer.parseInt(str_b[1]);
+
+            if(hour_a == hour_b)
+                return min_a - min_b;
+
+            return hour_a - hour_b;
+        }
     }
 }
