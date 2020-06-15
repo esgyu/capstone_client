@@ -21,7 +21,7 @@ public class HttpConnection {
     private OkHttpClient client;
     private static HttpConnection instance = new HttpConnection();
     private static final String portNumber = "5000";
-    private static final String ipv4Address = "192.168.0.17";
+    private static final String ipv4Address = "115.21.198.113";
 
     public static HttpConnection getInstance() {
         return instance;
