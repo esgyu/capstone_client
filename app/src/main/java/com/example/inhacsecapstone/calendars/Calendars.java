@@ -46,11 +46,6 @@ public class Calendars extends Fragment {
                 int month = date.getMonth() + 1;
                 int day = date.getDay();
 
-//                Intent intent = new Intent(getActivity(), DayDrugActivity.class);
-//                intent.putExtra("year", year);
-//                intent.putExtra("month", month);
-//                intent.putExtra("day", day);
-//                startActivity(intent);
                 String target = year+"."+month+"."+day;
                 db = AppDatabase.getDataBase(inflater.getContext());
                 ListView mListView = getView().findViewById(R.id.listView);
@@ -61,14 +56,7 @@ public class Calendars extends Fragment {
 
             }
         });
-        // DeleteAll 추가 부분
-//        rootView.findViewById(R.id.deleteAll).setOnClickListener(new View.OnClickListener() {
-//            @Override
-//            public void onClick(View v) {
-//                AppDatabase db = AppDatabase.getDataBase(getActivity());
-//                db.init();
-//            }
-//        });
+
         return rootView;
     }
 }
